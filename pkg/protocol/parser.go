@@ -3,6 +3,7 @@ package protocol
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/google/uuid"
 	"io"
 )
 
@@ -40,9 +41,12 @@ const (
 	ErrorResponse = 0xFF
 )
 
+const maxHeaderSize = 5
+
 type Header struct {
-	Opcode byte
-	Length uint32
+	Opcode        byte
+	Length        uint32
+	CorrelationId [16]byte
 }
 type Message struct {
 	Header Header
@@ -50,15 +54,18 @@ type Message struct {
 }
 
 func ParseMessage(reader io.Reader) (*Message, error) {
-	headerBuf := make([]byte, 5)
+	headerBuf := make([]byte, maxHeaderSize)
 
 	if _, err := io.ReadFull(reader, headerBuf); err != nil {
 		return nil, fmt.Errorf("read header failed: %w", err)
 	}
 
+	id := uuid.New()
+
 	header := Header{
-		Opcode: headerBuf[0],
-		Length: binary.BigEndian.Uint32(headerBuf[1:5]),
+		Opcode:        headerBuf[0],
+		Length:        binary.BigEndian.Uint32(headerBuf[1:5]),
+		CorrelationId: id,
 	}
 
 	body := make([]byte, header.Length)
