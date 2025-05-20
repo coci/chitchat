@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"net"
 )
 
 const (
@@ -50,10 +49,10 @@ type Message struct {
 	Body   []byte
 }
 
-func ParseMessage(conn net.Conn) (*Message, error) {
+func ParseMessage(reader io.Reader) (*Message, error) {
 	headerBuf := make([]byte, 5)
 
-	if _, err := io.ReadFull(conn, headerBuf); err != nil {
+	if _, err := io.ReadFull(reader, headerBuf); err != nil {
 		return nil, fmt.Errorf("read header failed: %w", err)
 	}
 
@@ -63,7 +62,7 @@ func ParseMessage(conn net.Conn) (*Message, error) {
 	}
 
 	body := make([]byte, header.Length)
-	if _, err := io.ReadFull(conn, body); err != nil {
+	if _, err := io.ReadFull(reader, body); err != nil {
 		return nil, fmt.Errorf("read body failed: %w", err)
 	}
 
