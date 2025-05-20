@@ -13,6 +13,8 @@ const (
 
 	GetUserToken         = 0x03
 	GetUserTokenResponse = 0x04
+
+	ErrorResponse = 0xFF
 )
 
 type Header struct {
