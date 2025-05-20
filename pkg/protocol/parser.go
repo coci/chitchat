@@ -14,6 +14,30 @@ const (
 	GetUserToken         = 0x03
 	GetUserTokenResponse = 0x04
 
+	GetChatroomLists         = 0x05
+	GetChatroomListsResponse = 0x06
+
+	CreateChatroom         = 0x07
+	CreateChatroomResponse = 0x08
+
+	JoinChatroom         = 0x09
+	JoinChatroomResponse = 0x0A
+
+	GetChatroomUser         = 0x0B
+	GetChatroomUserResponse = 0x0C
+
+	GetChatroomMessages         = 0x0D
+	GetChatroomMessagesResponse = 0x0E
+
+	SendMessageTOChatroom         = 0x0F
+	SendMessageTOChatroomResponse = 0x10
+
+	BroadcastMessageToChatroom = 0x11
+
+	BroadCastUserJoinedToChatroom = 0x12
+
+	UserLoggedOut = 0x13
+
 	ErrorResponse = 0xFF
 )
 
