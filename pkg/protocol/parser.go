@@ -26,14 +26,6 @@ type Message struct {
 	Body   []byte
 }
 
-func calculateChecksum(data []byte) uint32 {
-	var sum uint32
-	for _, b := range data {
-		sum += uint32(b)
-	}
-	return sum
-}
-
 func ParseMessage(conn net.Conn) (*Message, error) {
 	headerBuf := make([]byte, 5)
 
