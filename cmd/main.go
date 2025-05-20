@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"github.com/coci/chitchat/pkg/protocol"
 	"github.com/coci/chitchat/pkg/utils"
+	"log"
 	"net"
+	"os"
 )
 
 func handleConnection(conn net.Conn) {
@@ -12,16 +13,42 @@ func handleConnection(conn net.Conn) {
 	for {
 		msg, err := protocol.ParseMessage(conn)
 		if err != nil {
-			fmt.Println("Parse error:", err)
+			log.Fatal("Error parsing message: ", err)
 			return
 		}
-		fmt.Printf("Received: Opcode=0x%02X, Length=%d, Body=%s\n",
-			msg.Header.Opcode, msg.Header.Length, string(msg.Body))
+
+		switch msg.Header.Opcode {
+		case protocol.CreateUser:
+			// handle create user
+		case protocol.GetUserToken:
+			// handle get user token
+		case protocol.GetChatroomLists:
+			// handle get chatroom lists
+		case protocol.CreateChatroom:
+			// handle create chatroom
+		case protocol.JoinChatroom:
+			// handle join chatroom
+		case protocol.GetChatroomUser:
+			// handle get chatroom user
+		case protocol.GetChatroomMessages:
+			// handle get chatroom messages
+		case protocol.SendMessageTOChatroom:
+			// handle send message to chatroom
+		case protocol.UserLoggedOut:
+			// handle user logged out
+		default:
+			// handle unknown opcode
+		}
 	}
 }
 
 func main() {
-	ln, err := net.Listen("tcp", ":9000")
+	addr := os.Getenv("LISTEN_ADDR")
+	if addr == "" {
+		addr = ":9000" // default fallback
+	}
+
+	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +57,7 @@ func main() {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			fmt.Println("Accept error:", err)
+			log.Print("Error accepting connection: ", err)
 			continue
 		}
 		go handleConnection(conn)
