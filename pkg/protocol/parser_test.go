@@ -3,6 +3,7 @@ package protocol
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/google/uuid"
 	"testing"
 )
 
@@ -158,8 +159,9 @@ func TestParseMessageWithMultipleMessages(t *testing.T) {
 func TestEncodeMessageWithValidMessage(t *testing.T) {
 	msg := &Message{
 		Header: Header{
-			Opcode: CreateUser,
-			Length: uint32(len("test,test123456")),
+			Opcode:        CreateUser,
+			Length:        uint32(len("test,test123456")),
+			CorrelationId: uuid.New(),
 		},
 		Body: []byte("test,test123456"),
 	}
