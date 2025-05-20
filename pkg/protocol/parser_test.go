@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// test case that shows everything is fine in my parser
+// input is valid and output should be valid
 func TestParseMessageWithValidMessage(t *testing.T) {
 	var buf bytes.Buffer
 	body := []byte("test,test123456")
@@ -34,6 +36,7 @@ func TestParseMessageWithValidMessage(t *testing.T) {
 
 }
 
+// test case that shows if body is empty the parser will work fine
 func TestParseMessageWithZeroLength(t *testing.T) {
 	var buf bytes.Buffer
 
@@ -61,6 +64,7 @@ func TestParseMessageWithZeroLength(t *testing.T) {
 	}
 }
 
+// test case that shows if header is incomplete parser will not crash and throw error
 func TestParseMessageWithIncompleteHeader(t *testing.T) {
 	var buf bytes.Buffer
 
@@ -75,6 +79,7 @@ func TestParseMessageWithIncompleteHeader(t *testing.T) {
 
 }
 
+// this shows that if length is not correct parser will not crash and throw error
 func TestParseMessageWithIncompleteBody(t *testing.T) {
 	var buf bytes.Buffer
 	body := []byte("test,test123456")
@@ -95,6 +100,7 @@ func TestParseMessageWithIncompleteBody(t *testing.T) {
 	}
 }
 
+// this shows that if data is empty parser will not crash and throw error
 func TestParseMessageWithEmptyReader(t *testing.T) {
 	var buf bytes.Buffer
 
@@ -105,6 +111,7 @@ func TestParseMessageWithEmptyReader(t *testing.T) {
 	}
 }
 
+// this shows that parser will work fine in streams of bytes for example multiple message
 func TestParseMessageWithMultipleMessages(t *testing.T) {
 	var buf bytes.Buffer
 
@@ -147,6 +154,7 @@ func TestParseMessageWithMultipleMessages(t *testing.T) {
 	}
 }
 
+// this test case shows that encode message work fine and successfully make right streams of byte from Message
 func TestEncodeMessageWithValidMessage(t *testing.T) {
 	msg := &Message{
 		Header: Header{
