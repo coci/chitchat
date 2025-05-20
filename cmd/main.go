@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/coci/chitchat/pkg/protocol"
+	"github.com/coci/chitchat/pkg/utils"
 	"net"
 )
 
@@ -24,7 +25,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Server listening on :9000")
+	utils.MakeSplashScreen()
 
 	for {
 		conn, err := ln.Accept()
