@@ -78,7 +78,6 @@ func main() {
 		for {
 			select {
 			case <-ctx.Done():
-
 				return
 			default:
 				conn, err := listener.Accept()
