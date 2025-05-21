@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 )
 
 var wg sync.WaitGroup
@@ -18,15 +19,21 @@ func handleConnection(cancelContext context.Context, conn net.Conn) {
 	defer wg.Done()
 	defer conn.Close()
 
-	select {
-	case <-cancelContext.Done():
-		return
+	for {
+		_ = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 
-	default:
-		for {
+		select {
+		case <-cancelContext.Done():
+			log.Println("Connection canceled, closing handler.")
+			return
+		default:
 			msg, err := protocol.ParseMessage(conn)
+
 			if err != nil {
-				log.Fatal("Error parsing message: ", err)
+				if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+					continue
+				}
+				log.Println("Error parsing message:", err)
 				return
 			}
 
@@ -57,7 +64,6 @@ func handleConnection(cancelContext context.Context, conn net.Conn) {
 }
 
 func main() {
-	// Setup signal context
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
