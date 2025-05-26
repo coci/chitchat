@@ -158,6 +158,25 @@ func TestParseMessageWithMultipleMessages(t *testing.T) {
 	}
 }
 
+func TestParseBody(t *testing.T) {
+	msg := &Message{
+		Header: Header{
+			Opcode: 0x01,
+			Length: uint32(len("test,test123456")),
+		},
+		Body: []byte("test,test123456"),
+	}
+
+	parts := msg.ParseBody()
+
+	if len(parts) != 2 {
+		t.Errorf("ParseBody returned %d parts, want 2", len(parts))
+	}
+	if parts[0] != "test" || parts[1] != "test123456" {
+		t.Errorf("ParseBody returned unexpected parts: got %q, want %q", parts[0], "test123456")
+	}
+}
+
 // this test case shows that encode message work fine and successfully make right streams of byte from Message
 func TestEncodeMessageWithValidMessage(t *testing.T) {
 	msg := &Message{
