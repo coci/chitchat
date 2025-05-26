@@ -73,3 +73,13 @@ func ParseMessage(reader io.Reader) (*Message, error) {
 		Body:   body,
 	}, nil
 }
+
+func NewMessageFactory(opcode byte, body []byte) *Message {
+	return &Message{
+		Header: Header{
+			Opcode: opcode,
+			Length: uint32(len(body)),
+		},
+		Body: body,
+	}
+}
