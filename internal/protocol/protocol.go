@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ type Header struct {
 	Opcode byte
 	Length uint32
 }
+
 type Message struct {
 	Header Header
 	Body   []byte
@@ -36,6 +38,17 @@ func (m *Message) ValidateMessage() error {
 		return errors.New("length of message not equal to length in header")
 	}
 	return nil
+}
+
+func (m *Message) ParseBody() []string {
+	parts := bytes.Split(m.Body, []byte(","))
+
+	result := make([]string, 0, len(parts))
+	for _, part := range parts {
+		result = append(result, string(part))
+	}
+
+	return result
 }
 
 func ParseMessage(reader io.Reader) (*Message, error) {
