@@ -8,7 +8,7 @@
 
 ## 1. Introduction
 
-This document defines the **ChitChat Binary Message Protocol (CBMP)**, a lightweight protocol for encoding and decoding binary messages consisting of a fixed-size header and variable-length body. It is designed for efficient transmission of structured messages over byte streams such as TCP connections.
+This document defines the **Simple Binary Message Protocol (SBMP)**, a lightweight protocol for encoding and decoding binary messages consisting of a fixed-size header and variable-length body. It is designed for efficient transmission of structured messages over byte streams such as TCP connections.
 
 ---
 
@@ -30,8 +30,14 @@ Each message consists of a **Header** followed by a **Body**.
 
 ### 2.2 Body
 
-- **Body (N bytes)**: Arbitrary binary payload. The size is determined by the `Length` field in the header.
+- **Body (N bytes)**: A comma-separated string payload. The size is determined by the `Length` field in the header.
 
+  > **Note:** The body MUST be a UTF-8 encoded string with comma-separated values.
+
+for example :
+```text
+john,doe
+```
 ---
 
 ## 3. Encoding
@@ -82,13 +88,13 @@ If validation fails, the message MUST be rejected.
 | Field  | Value        |
 | ------ | ------------ |
 | Opcode | `0x01`       |
-| Length | `0x00000005` |
-| Body   | `hello`      |
+| Length | `0x00000009` |
+| Body   | `john,doe`   |
 
 ### Binary Encoding (Hex):
 
 ```
-01 00 00 00 05 68 65 6C 6C 6F
+01 00 00 00 09 6A 6F 68 6E 2C 64 6F 65
 ```
 
 ---
