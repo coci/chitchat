@@ -159,13 +159,10 @@ func TestParseMessageWithMultipleMessages(t *testing.T) {
 }
 
 func TestParseBody(t *testing.T) {
-	msg := &Message{
-		Header: Header{
-			Opcode: 0x01,
-			Length: uint32(len("test,test123456")),
-		},
-		Body: []byte("test,test123456"),
-	}
+	msg := NewMessageFactory(
+		0x01,
+		[]byte("test,test123456"),
+	)
 
 	parts := msg.ParseBody()
 
@@ -179,13 +176,10 @@ func TestParseBody(t *testing.T) {
 
 // this test case shows that encode message work fine and successfully make right streams of byte from Message
 func TestEncodeMessageWithValidMessage(t *testing.T) {
-	msg := &Message{
-		Header: Header{
-			Opcode: 0x01,
-			Length: uint32(len("test,test123456")),
-		},
-		Body: []byte("test,test123456"),
-	}
+	msg := NewMessageFactory(
+		0x01,
+		[]byte("test,test123456"),
+	)
 
 	byt, err := msg.Encode()
 
