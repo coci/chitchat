@@ -3,7 +3,6 @@ package protocol
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/google/uuid"
 	"testing"
 )
 
@@ -27,7 +26,7 @@ func TestParseMessageWithValidMessage(t *testing.T) {
 		t.Fatalf("ParseMessage failed: %v", err)
 	}
 
-	if msg.Header.Opcode != CreateUser {
+	if msg.Header.Opcode != 0x01 {
 		t.Errorf("Opcode: got %x, want %x", msg.Header.Opcode, 0x01)
 	}
 
@@ -52,7 +51,11 @@ func TestParseMessageWithZeroLength(t *testing.T) {
 		t.Fatalf("ParseMessage failed: %v", err)
 	}
 
-	if msg.Header.Opcode != CreateUser {
+	if err := msg.ValidateMessage(); err == nil {
+		t.Errorf("body cannot be empty")
+	}
+
+	if msg.Header.Opcode != 0x01 {
 		t.Errorf("Opcode: got %x, want %x", msg.Header.Opcode, 0x01)
 	}
 
@@ -159,14 +162,13 @@ func TestParseMessageWithMultipleMessages(t *testing.T) {
 func TestEncodeMessageWithValidMessage(t *testing.T) {
 	msg := &Message{
 		Header: Header{
-			Opcode:        CreateUser,
-			Length:        uint32(len("test,test123456")),
-			CorrelationId: uuid.New(),
+			Opcode: 0x01,
+			Length: uint32(len("test,test123456")),
 		},
 		Body: []byte("test,test123456"),
 	}
 
-	byt, err := EncodeMessage(msg)
+	byt, err := msg.Encode()
 
 	if err != nil {
 		t.Fatalf("EncodeMessage failed: %v", err)
