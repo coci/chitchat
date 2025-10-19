@@ -16,8 +16,11 @@ It provides a structured, extensible, and low-latency message exchange between c
 
 #### 1.2 Goals
 •	🔹 Low overhead: compact binary format with fixed-length headers.
+
 •	🔹 Extensible: flexible TLV (Type-Length-Value) payload encoding.
+
 •	🔹 Reliable: built on TCP to ensure message delivery and order.
+
 •	🔹 Simple to parse: predictable header layout and clear semantics.
 
 #### 1.3 Design Philosophy
