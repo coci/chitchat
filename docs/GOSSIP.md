@@ -31,12 +31,12 @@ GOSSIP is minimal: every byte has a purpose. It uses two magic bytes for framing
 ## 2. Frame Structure
 ```text
 
-+-------------+------------------------------------------------------------------------------------+
-|    Header   |  Magic     |  version    |  MsgType    |  Flags      |  Stream ID    |  Length     |
-|   12 bytes  |  0xNU 0xLL |  1 byte     |  1 byte     |  2 bytes    |  4 bytes      |  2 bytes    |
-|+------------+------------+------------+------------+------------+-----------------+--------------+
-|     body    |                               (Length bytes)                                       |
-+-------------+------------------------------------------------------------------------------------+
++-------------+--------------------------------------------------------------+
+|    Header   |  Magic     |  version    |  MsgType  |  Stream ID |  Length  |
+|   12 bytes  |  0xNU 0xLL |  1 byte     |  1 byte   |  4 bytes   |  2 bytes |             
+|+------------+------------+------------+------------+------------+----------+
+|     Body    |                      (Length bytes)                          |
++-------------+--------------------------------------------------------------+
 ```
 
 Each message transmitted over GOSSIP is called a frame.
@@ -47,7 +47,6 @@ Each message transmitted over GOSSIP is called a frame.
 │ 0x00     │ 2 B    │ Magic      │ Frame marker for sync. (0xNU 0xLL)  │ uint16 │ Always same for protocol version │
 │ 0x02     │ 1 B    │ Version    │ Protocol version                    │ uint8  │ Start with 0x01                  │
 │ 0x03     │ 1 B    │ Msg Type   │ Opcode or message category          │ uint8  │ e.g., 0x01 = Chat, 0x02 = Join   │
-│ 0x04     │ 2 B    │ Flags      │ Optional bits                       │ uint8  │ e.g., bit 0 = compressed         │
 │ 0x05     │ 4 B    │ Stream ID  │ Conversation or channel identifier  │ uint32 │ Correlates request/response      │
 │ 0x09     │ 2 B    │ Length     │ Payload size in bytes               │ uint16 │ Up to 65535                      │
 │ 0x0B     │ N B    │ Payload    │ TLV structured payload              │ var    │ Decoded according to TLV rules   │
