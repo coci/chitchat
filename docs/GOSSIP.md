@@ -30,14 +30,13 @@ GOSSIP is minimal: every byte has a purpose. It uses two magic bytes for framing
 
 ## 2. Frame Structure
 ```text
-+------------------------------------------------------------------------------------+
-|                                 Header (12 bytes)                                  |
-+                           +------------+------------+
-|  Magic     |  version    |  MsgType    |  Flags      |  Stream ID    |  Length     |
-|  0xNU 0xLL |  1 byte     |  1 byte     |  2 bytes    |  4 bytes      |  2 bytes    |
-+------------+------------+------------+------------+-----------------+--------------+
-|                                 Payload (Length bytes)                             |
-+------------------------------------------------------------------------------------+
+
++-------------+------------------------------------------------------------------------------------+
+|    Header   |  Magic     |  version    |  MsgType    |  Flags      |  Stream ID    |  Length     |
+|   12 bytes  |  0xNU 0xLL |  1 byte     |  1 byte     |  2 bytes    |  4 bytes      |  2 bytes    |
+|+------------+------------+------------+------------+------------+-----------------+--------------+
+|     body    |                               (Length bytes)                                       |
++-------------+------------------------------------------------------------------------------------+
 ```
 
 Each message transmitted over GOSSIP is called a frame.
