@@ -14,12 +14,12 @@ Confidentiality: TLS 1.3 encryption
 
 GOSSIP is a binary application-level protocol designed for chat and messaging systems.
 It provides:
-•	Secure session establishment (with TLS 1.3)
-•	Long-lived device sessions
-•	Frame-based binary messages with fixed headers
-•	Strong integrity via per-session HMAC
-•	Replay and ordering protection using sequence numbers
-•	Simple extensibility via message types (no TLVs, no flags)
+ - Secure session establishment (with TLS 1.3)
+ - Long-lived device sessions
+ - Frame-based binary messages with fixed headers
+ - Strong integrity via per-session HMAC
+ - Replay and ordering protection using sequence numbers
+ - Simple extensibility via message types (no TLVs, no flags)
 
 #### 1.3 Design Philosophy
 
