@@ -2,33 +2,57 @@
 
 ```
 Version: 1.0
-Transport: TCP
-Endianness: Big-Endian
-Document Type: Specification
+Purpose: Binary protocol for secure, low-latency communication in chat systems.
+Transport Layer: TCP over TLS 1.3
+Endian: Big-endian (network byte order)
+Authentication: Username + Password → Session (persistent device-bound tokens)
+Integrity: HMAC-SHA256 truncated to 16 bytes
+Confidentiality: TLS 1.3 encryption
 ```
 
 ## 1. Overview
 
-#### 1.1 Purpose
-
-GOSSIP is a lightweight, binary, stream-oriented protocol designed for efficient communication in distributed chat systems.
-It provides a structured, extensible, and low-latency message exchange between clients, servers, and services such as gateways, routers, or message buses.
-
-#### 1.2 Goals
-•	🔹 Low overhead: compact binary format with fixed-length headers.
-
-•	🔹 Extensible: flexible TLV (Type-Length-Value) payload encoding.
-
-•	🔹 Reliable: built on TCP to ensure message delivery and order.
-
-•	🔹 Simple to parse: predictable header layout and clear semantics.
+GOSSIP is a binary application-level protocol designed for chat and messaging systems.
+It provides:
+•	Secure session establishment (with TLS 1.3)
+•	Long-lived device sessions
+•	Frame-based binary messages with fixed headers
+•	Strong integrity via per-session HMAC
+•	Replay and ordering protection using sequence numbers
+•	Simple extensibility via message types (no TLVs, no flags)
 
 #### 1.3 Design Philosophy
 
-GOSSIP is minimal: every byte has a purpose. It uses two magic bytes for framing synchronization and integrity, followed by a fixed header and a variable payload. The TLV body supports rich structured data (such as JSON-like fields, binary attachments, or nested records) without requiring schema negotiation.
+GOSSIP is minimal. Every byte has a purpose. It uses two magic bytes for framing synchronization and integrity, followed by a fixed header and a variable payload. The TLV body supports rich structured data (such as JSON-like fields, binary attachments, or nested records) without requiring schema negotiation.
 
 
-## 2. Frame Structure
+## 2. Transport and Security
+• All communication must occur over TLS 1.3.
+
+• Server presents a valid certificate.
+
+• ALPN identifier: "gossip/1".
+
+• Recommended ciphers:
+
+- TLS_AES_128_GCM_SHA256
+
+- TLS_CHACHA20_POLY1305_SHA256
+
+• Optional: mutual TLS for administrative or service clients.
+
+No application-level encryption beyond HMAC integrity is required.
+HMAC protects against replay, duplication, or session confusion.
+
+
+
+## 3. Frame Structure
+
+Every GOSSIP message is a Frame consisting of a fixed header and a variable-length payload.
+
+#### 3.1 Short Header (Pre-Auth)
+
+Used before authentication — e.g., login, hello, token renew.
 ```text
 
 +-------------+--------------------------------------------------------------+
@@ -39,18 +63,81 @@ GOSSIP is minimal: every byte has a purpose. It uses two magic bytes for framing
 +-------------+--------------------------------------------------------------+
 ```
 
-Each message transmitted over GOSSIP is called a frame.
+• Header size: 10 bytes
+
+• Payload: raw text
+
+• Integrity: Transport-only (TLS).
+
+#### 3.2 Long Header (Post-Auth / Secure)
+
+Used after successful authentication. Adds session identity, sequence tracking, and HMAC tag.
+
 ```text
-┌──────────┬────────┬────────────┬─────────────────────────────────────────────────────────────────────────────────
-│ Offset   │ Size   │ Field Name │ Description                         │ Type   │ Notes                            │
-├──────────┼────────┼────────────┼─────────────────────────────────────├────────├──────────────────────────────────├ 
-│ 0x00     │ 2 B    │ Magic      │ Frame marker for sync. (0xNU 0xLL)  │ uint16 │ Always same for protocol version │
-│ 0x02     │ 1 B    │ Version    │ Protocol version                    │ uint8  │ Start with 0x01                  │
-│ 0x03     │ 1 B    │ Msg Type   │ Opcode or message category          │ uint8  │ e.g., 0x01 = Chat, 0x02 = Join   │
-│ 0x05     │ 4 B    │ Stream ID  │ Conversation or channel identifier  │ uint32 │ Correlates request/response      │
-│ 0x09     │ 2 B    │ Length     │ Payload size in bytes               │ uint16 │ Up to 65535                      │
-│ 0x0B     │ N B    │ Payload    │ TLV structured payload              │ var    │ Decoded according to TLV rules   │
-└──────────┴────────┴────────────┴─────────────────────────────────────────────────────────────────────────────────├
++-------------+------------------------------------------------------------------------------------------------+
+|    Header   |  Magic     |  version    |  MsgType  |  Stream ID |  Length  | session_id | seq     | tag      |
+|   12 bytes  |  0xNU 0xLL |  1 byte     |  1 byte   |  4 bytes   |  2 bytes |  4 bytes   | 8 bytes | 16 bytes |
+|+------------+------------+------------+------------+------------+----------+------------+---------+----------+
+|     Body    |                                        (Length bytes)                                          | 
++-------------+------------------------------------------------------------------------------------------------+
 ```
-Total header size: 12 bytes
-Payload: variable length (0–65,535 bytes)
+
+• Header size: 38 bytes
+
+• Payload: raw text
+
+• Integrity: Application-level HMAC
+
+## 4. HMAC Integrity Verification
+```text
+tag = first16bytes( HMAC_SHA256(session_key, header_without_tag || payload) )
+```
+
+• session_key: 32-byte random secret assigned at login
+
+• Verification:
+Lookup session_key by session_id.
+
+• Compute HMAC
+
+• Compare constant-time
+
+• Drop frame if invalid or seq ≤ last_seen.
+
+## 5. Sequence Numbers
+• 64-bit unsigned integer (seq)
+
+• Increment by 1 for every frame per direction
+
+• Server maintains seq_up (client→server) and seq_down (server→client)
+
+• Drop or resync if sequence regresses or jumps too far
+
+• Prevents replay or duplication
+
+## 6. Session Model
+
+| Concept | Description                                         |
+|--------|-----------------------------------------------------|
+|    user| Registered account                                  |
+|    device_id| Random UUID per installation                        |
+|    session_id| 32-bit server-side handle linking user + device     |
+| session_key| 256-bit random secret for HMAC; never leaves server |
+| refresh_token| Long-lived (e.g., 365 days), rotated each use.      |
+|   access_token| Short-lived (e.g., 15 min), optional                |
+|   seq| Monotonic counter per direction                     |
+
+
+## 7. Authentication Lifecycle
+1.	Login (AUTH_LOGIN_REQ → AUTH_LOGIN_OK):
+ - Validates credentials over TLS
+ - Server issues session_id and session_key
+2.	Normal Operation:
+ -	Use Long Header for all frames
+ -	Include session_id, seq, tag
+3.	Token Renewal:
+ - Send TOKEN_RENEW_REQ with refresh_token (Short Header, still under TLS)
+ - Server replies TOKEN_RENEW_OK with rotated tokens
+4.	Logout:
+ - Client sends LOGOUT_REQ
+ - Server deletes session; returns LOGOUT_OK
