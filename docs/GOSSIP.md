@@ -19,11 +19,11 @@ It provides:
  - Frame-based binary messages with fixed headers
  - Strong integrity via per-session HMAC
  - Replay and ordering protection using sequence numbers
- - Simple extensibility via message types (no TLVs, no flags)
+ - Simple extensibility via message types
 
 #### 1.3 Design Philosophy
 
-GOSSIP is minimal. Every byte has a purpose. It uses two magic bytes for framing synchronization and integrity, followed by a fixed header and a variable payload. The TLV body supports rich structured data (such as JSON-like fields, binary attachments, or nested records) without requiring schema negotiation.
+GOSSIP is minimal. Every byte has a purpose. It uses two magic bytes for framing synchronization and integrity, followed by a fixed header and a variable payload. The body supports rich binary without requiring schema negotiation.
 
 
 ## 2. Transport and Security
