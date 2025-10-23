@@ -19,7 +19,7 @@ It provides:
  - Frame-based binary messages with fixed headers
  - Strong integrity via per-session HMAC
  - Replay and ordering protection using sequence numbers
- - Simple extensibility via message types
+ - Simple extensibility via message typesq
 
 #### 1.3 Design Philosophy
 
