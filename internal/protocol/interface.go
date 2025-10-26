@@ -23,4 +23,5 @@ type Frame struct {
 type IProtocol interface {
 	ParseMessage(data []byte) (Frame, error)
 	SerializeMessage(Frame) []byte
+	FrameToString(Frame) string
 }
