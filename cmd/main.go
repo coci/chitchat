@@ -1,8 +1,8 @@
 package main
 
 import (
-	"chitchat/internal/gateway"
-	"chitchat/internal/protocol"
+	"chitchat/pkg/gateway"
+	"chitchat/pkg/protocol"
 )
 
 func main() {

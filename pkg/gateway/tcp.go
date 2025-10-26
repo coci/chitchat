@@ -1,7 +1,7 @@
 package gateway
 
 import (
-	"chitchat/internal/protocol"
+	"chitchat/pkg/protocol"
 	"fmt"
 	"io"
 	"log"
