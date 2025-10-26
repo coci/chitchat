@@ -7,7 +7,7 @@ import (
 
 type Gossip struct{}
 
-func (g *Gossip) ParseMessage(data []byte) (Frame, error) {
+func (g Gossip) ParseMessage(data []byte) (Frame, error) {
 	if len(data) < 10 {
 		return Frame{}, fmt.Errorf("data too short for header: %d bytes", len(data))
 	}
@@ -31,7 +31,7 @@ func (g *Gossip) ParseMessage(data []byte) (Frame, error) {
 	}, nil
 }
 
-func (g *Gossip) SerializeMessage(f Frame) []byte {
+func (g Gossip) SerializeMessage(f Frame) []byte {
 
 	isLongHeader := f.LongTail != nil
 
@@ -64,4 +64,23 @@ func (g *Gossip) SerializeMessage(f Frame) []byte {
 	}
 
 	return data
+}
+
+func (g Gossip) FrameToString(f Frame) string {
+	return fmt.Sprintf(
+		"GOSSIP HEADER {\n"+
+			"  Magic: 0x%04X\n"+
+			"  Version: %d\n"+
+			"  MsgType: %d\n"+
+			"  StreamID: %d\n"+
+			"  Length: %d\n"+
+			"  Payload: %q\n"+
+			"}",
+		f.Header.Magic,
+		f.Header.Version,
+		f.Header.MessageType,
+		f.Header.StreamId,
+		f.Header.Length,
+		f.Body,
+	)
 }
