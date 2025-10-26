@@ -9,6 +9,7 @@ import (
 )
 
 type Server struct {
+	IGateway
 	protocol protocol.IProtocol
 }
 

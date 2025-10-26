@@ -5,7 +5,9 @@ import (
 	"fmt"
 )
 
-type Gossip struct{}
+type Gossip struct {
+	IProtocol
+}
 
 func (g Gossip) ParseMessage(data []byte) (Frame, error) {
 	if len(data) < 10 {
