@@ -1,71 +1,86 @@
 package gateway
 
 import (
+	"chitchat/pkg/logger"
 	"chitchat/pkg/protocol"
-	"fmt"
 	"io"
-	"log"
 	"net"
 )
 
 type Server struct {
 	IGateway
 	protocol protocol.IProtocol
+	logger   logger.ILogger
 }
 
-func NewServer(protocol protocol.IProtocol) *Server {
+func NewServer(protocol protocol.IProtocol, logger logger.ILogger) *Server {
 	return &Server{
 		protocol: protocol,
+		logger:   logger,
 	}
 }
 
 func (s *Server) Serve() {
-	fmt.Println("ChitChat server starting ....")
+	s.logger.Info("Starting server...")
 
 	tcp, err := net.Listen("tcp", ":8080")
 	if err != nil {
-		fmt.Println(err)
+		s.logger.Error("Failed to Listen", logger.Field{Key: "error", Value: err})
 	}
-	defer tcp.Close()
+
+	defer func(tcp net.Listener) {
+		err := tcp.Close()
+		if err != nil {
+			s.logger.Error("Failed to close TCP listener", logger.Field{Key: "error", Value: err})
+		}
+	}(tcp)
 
 	for {
 		conn, err := tcp.Accept()
 		if err != nil {
-			log.Fatal(err)
+			s.logger.Error("Failed to accept new tcp connection", logger.Field{Key: "error", Value: err})
 		}
 		s.HandleConnection(conn)
 	}
 }
 
 func (s *Server) HandleConnection(conn net.Conn) {
-	defer conn.Close()
+	defer func(conn net.Conn) {
+		err := conn.Close()
+		if err != nil {
+			s.logger.Error("Failed to close TCP connection", logger.Field{Key: "error", Value: err})
+		}
+	}(conn)
 
-	conn.Write([]byte("Welcome to ChitChat\n"))
+	_, err := conn.Write([]byte("Welcome to ChitChat\n"))
+	if err != nil {
+		return
+	}
 
 	for {
 		buff := make([]byte, 1024)
 		n, err := conn.Read(buff)
 		if err != nil {
 			if err == io.EOF {
-				fmt.Println("Client closed connection.")
+				s.logger.Error("Close Connection")
 				break
 			}
-			log.Println("Read error:", err)
+			s.logger.Error("Failed to read data in tcp connection", logger.Field{Key: "error", Value: err})
 			break
 		}
 
 		if n == 0 {
-			// connection open but no data
+			s.logger.Error("Close Connection")
 			break
 		}
 
 		frame, err := s.protocol.ParseMessage(buff[:n])
 
 		if err != nil {
-			log.Println("Decode error:", err)
+			s.logger.Error("Failed to parse message", logger.Field{Key: "error", Value: err})
 			continue
 		}
 
-		fmt.Println(s.protocol.FrameToString(frame))
+		s.logger.Info(s.protocol.String(frame))
 	}
 }
