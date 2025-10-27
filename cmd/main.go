@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	newServer := gateway.NewServer(protocol.Gossip{}, logger.NewZapLogger())
+	newServer := gateway.NewServer(protocol.Gossip{Logger: logger.NewZapLogger()}, logger.NewZapLogger())
 
 	newServer.Serve()
 }

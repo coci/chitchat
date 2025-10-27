@@ -1,9 +1,9 @@
 package protocol
 
 import (
+	"chitchat/pkg/logger"
 	"encoding/binary"
 	"fmt"
-	"log"
 )
 
 type Header struct {
@@ -27,6 +27,8 @@ type Frame struct {
 }
 type Gossip struct {
 	IProtocol
+
+	Logger logger.ILogger
 }
 
 func (g Gossip) ParseMessage(data []byte) (IFrame, error) {
@@ -97,7 +99,7 @@ func (g Gossip) SerializeMessage(f IFrame) []byte {
 func (g Gossip) String(frame IFrame) string {
 	f, ok := frame.(Frame)
 	if !ok {
-		log.Fatal("Invalid frame type")
+		g.Logger.Error("The frame is not a IFrame")
 	}
 
 	if f.LongTail != nil {
