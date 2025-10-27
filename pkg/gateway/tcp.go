@@ -45,6 +45,8 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) HandleConnection(conn net.Conn) {
+	s.logger.Info("New connection arrived", logger.Field{Key: "remoteAddr", Value: conn.RemoteAddr()})
+
 	defer func(conn net.Conn) {
 		err := conn.Close()
 		if err != nil {
@@ -80,7 +82,6 @@ func (s *Server) HandleConnection(conn net.Conn) {
 			s.logger.Error("Failed to parse message", logger.Field{Key: "error", Value: err})
 			continue
 		}
-
 		s.logger.Info(s.protocol.String(frame))
 	}
 }

@@ -3,6 +3,7 @@ package protocol
 import (
 	"encoding/binary"
 	"fmt"
+	"log"
 )
 
 type Header struct {
@@ -93,7 +94,12 @@ func (g Gossip) SerializeMessage(f IFrame) []byte {
 	return data
 }
 
-func (f Frame) String() string {
+func (g Gossip) String(frame IFrame) string {
+	f, ok := frame.(Frame)
+	if !ok {
+		log.Fatal("Invalid frame type")
+	}
+
 	if f.LongTail != nil {
 		return fmt.Sprintf(
 			"Frame{Magic: 0x%04X, Version: %d, MsgType: %d, StreamID: %d, Length: %d, SessionID: %d, Sequence: %d, Tag: %d, Body: %q}",
