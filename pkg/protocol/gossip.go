@@ -5,11 +5,30 @@ import (
 	"fmt"
 )
 
+type Header struct {
+	Magic       uint16
+	Version     uint8
+	MessageType uint8
+	StreamId    uint32
+	Length      uint16
+}
+
+type LongTail struct {
+	SessionId uint32
+	Sequence  uint64
+	Tag       uint64
+}
+
+type Frame struct {
+	Header   Header
+	LongTail *LongTail
+	Body     []byte
+}
 type Gossip struct {
 	IProtocol
 }
 
-func (g Gossip) ParseMessage(data []byte) (Frame, error) {
+func (g Gossip) ParseMessage(data []byte) (IFrame, error) {
 	if len(data) < 10 {
 		return Frame{}, fmt.Errorf("data too short for header: %d bytes", len(data))
 	}
@@ -33,9 +52,15 @@ func (g Gossip) ParseMessage(data []byte) (Frame, error) {
 	}, nil
 }
 
-func (g Gossip) SerializeMessage(f Frame) []byte {
+func (g Gossip) SerializeMessage(f IFrame) []byte {
 
-	isLongHeader := f.LongTail != nil
+	frame, ok := f.(Frame)
+
+	if !ok {
+		return []byte{}
+	}
+
+	isLongHeader := frame.LongTail != nil
 
 	var headerSize int
 
@@ -45,39 +70,46 @@ func (g Gossip) SerializeMessage(f Frame) []byte {
 		headerSize = 10
 	}
 
-	data := make([]byte, headerSize+len(f.Body))
+	data := make([]byte, headerSize+len(frame.Body))
 
-	binary.BigEndian.PutUint16(data[0:2], f.Header.Magic)
-	data[2] = f.Header.Version
-	data[3] = f.Header.MessageType
-	binary.BigEndian.PutUint32(data[4:8], f.Header.StreamId)
-	binary.BigEndian.PutUint16(data[8:10], f.Header.Length)
+	binary.BigEndian.PutUint16(data[0:2], frame.Header.Magic)
+	data[2] = frame.Header.Version
+	data[3] = frame.Header.MessageType
+	binary.BigEndian.PutUint32(data[4:8], frame.Header.StreamId)
+	binary.BigEndian.PutUint16(data[8:10], frame.Header.Length)
 
 	if isLongHeader {
 		// Serialize Long Tail (post-auth)
-		binary.BigEndian.PutUint32(data[10:14], f.LongTail.SessionId)
-		binary.BigEndian.PutUint64(data[14:22], f.LongTail.Sequence)
-		binary.BigEndian.PutUint64(data[22:38], f.LongTail.Tag)
+		binary.BigEndian.PutUint32(data[10:14], frame.LongTail.SessionId)
+		binary.BigEndian.PutUint64(data[14:22], frame.LongTail.Sequence)
+		binary.BigEndian.PutUint64(data[22:38], frame.LongTail.Tag)
 		// Copy body
-		copy(data[38:], f.Body)
+		copy(data[38:], frame.Body)
 	} else {
 		// Copy body for short header
-		copy(data[10:], f.Body)
+		copy(data[10:], frame.Body)
 	}
 
 	return data
 }
 
-func (g Gossip) FrameToString(f Frame) string {
+func (f Frame) String() string {
+	if f.LongTail != nil {
+		return fmt.Sprintf(
+			"Frame{Magic: 0x%04X, Version: %d, MsgType: %d, StreamID: %d, Length: %d, SessionID: %d, Sequence: %d, Tag: %d, Body: %q}",
+			f.Header.Magic,
+			f.Header.Version,
+			f.Header.MessageType,
+			f.Header.StreamId,
+			f.Header.Length,
+			f.LongTail.SessionId,
+			f.LongTail.Sequence,
+			f.LongTail.Tag,
+			f.Body,
+		)
+	}
 	return fmt.Sprintf(
-		"GOSSIP HEADER {\n"+
-			"  Magic: 0x%04X\n"+
-			"  Version: %d\n"+
-			"  MsgType: %d\n"+
-			"  StreamID: %d\n"+
-			"  Length: %d\n"+
-			"  Payload: %q\n"+
-			"}",
+		"Frame{Magic: 0x%04X, Version: %d, MsgType: %d, StreamID: %d, Length: %d, Body: %q}",
 		f.Header.Magic,
 		f.Header.Version,
 		f.Header.MessageType,
